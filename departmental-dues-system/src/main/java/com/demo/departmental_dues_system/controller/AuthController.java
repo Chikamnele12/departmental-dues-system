@@ -7,10 +7,12 @@ import com.demo.departmental_dues_system.repository.UserRepository;
 import com.demo.departmental_dues_system.config.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -81,5 +83,17 @@ public class AuthController {
         ));
 
         return ResponseEntity.ok(response);
+    }
+
+    // NEW: Get all users (ADMIN only)
+    @GetMapping("/users")
+    public ResponseEntity<?> getAllUsers(Authentication auth) {
+        // Check if the logged-in user has ADMIN role
+        if (!auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ADMIN"))) {
+            return ResponseEntity.status(403).body(Map.of("error", "Access denied"));
+        }
+
+        List<User> users = userRepository.findAll();
+        return ResponseEntity.ok(users);
     }
 }
